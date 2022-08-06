@@ -109,16 +109,6 @@ const userServices = {
       const user = await User.findByPk(req.params.id)
       if (!user) return cb(Error("User didn't exist!"))
 
-      if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'travis') {
-        if (!req.body.account) {
-          return cb(Error('Account is not allowed empty!'))
-        }
-
-        if (!req.body.email) {
-          return cb(Error('Email is not allowed empty!'))
-        }
-      }
-
       const userByAccount = await User.findOne({
         where: {
           account: req.body.account || ''
@@ -141,10 +131,14 @@ const userServices = {
         }
       }
 
-      const avatarFile = req.files?.avatar[0]
-      const avatarPath = avatarFile ? await imgurFileHandler(req.files.avatar[0]) : undefined
-      const coverFile = req.files?.cover[0]
-      const coverPath = coverFile ? await imgurFileHandler(req.files.coverPath[0]) : undefined
+      let avatarPath = ''
+      let coverPath = ''
+      if (req.files) {
+        const avatarFile = req.files?.avatar && req?.files.avatar[0]
+        avatarPath = avatarFile ? await imgurFileHandler(req.files.avatar[0]) : undefined
+        const coverFile = req.files?.cover && req?.files?.cover[0]
+        coverPath = coverFile ? await imgurFileHandler(req.files.cover[0]) : undefined
+      }
 
       const hash = typeof req.body.password === 'string' ? await bcrypt.hash(req.body.password, 10) : undefined
 
